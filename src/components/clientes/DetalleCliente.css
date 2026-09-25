@@ -1,0 +1,96 @@
+.detalle-cliente__lista {
+  list-style: none;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.detalle-cliente__item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #eee;
+  background-color: #fafafa;
+}
+
+.detalle-cliente__fecha {
+  font-weight: bold;
+}
+
+.detalle-cliente__quinta {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.detalle-cliente__estado {
+  font-size: 0.85rem;
+  color: #2f6f4f;
+}
+
+.detalle-cliente__mensaje {
+  padding: 1rem;
+}
+
+.detalle-cliente__editar {
+  margin: 0 1rem 1rem;
+  font-size: 0.9rem;
+  border: none;
+  background: none;
+  color: #2f6f4f;
+}
+
+.detalle-cliente__edicion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0 1rem 1rem;
+}
+
+.detalle-cliente__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.detalle-cliente__campo input {
+  font-size: 1rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+}
+
+.detalle-cliente__error {
+  color: #b00020;
+  font-size: 0.85rem;
+}
+
+.detalle-cliente__acciones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.detalle-cliente__boton {
+  flex: 1;
+  font-size: 1rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.5rem;
+  border: none;
+  background-color: #2f6f4f;
+  color: white;
+}
+
+.detalle-cliente__boton:disabled {
+  opacity: 0.6;
+}
+
+.detalle-cliente__boton-cancelar {
+  flex: 1;
+  font-size: 1rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+  background: none;
+}

@@ -1,0 +1,39 @@
+.formulario-visita {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.formulario-visita__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.formulario-visita__campo input,
+.formulario-visita__campo select {
+  font-size: 1rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+}
+
+.formulario-visita__error {
+  color: #b00020;
+  font-size: 0.9rem;
+}
+
+.formulario-visita__boton {
+  font-size: 1.1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  background-color: #2f6f4f;
+  color: white;
+}
+
+.formulario-visita__boton:disabled {
+  opacity: 0.6;
+}

@@ -11,18 +11,17 @@ Corresponde a la entidad "Cliente" definida en [spec.md](./spec.md).
 | Campo | Tipo | Requerido | Validación | Notas |
 |---|---|---|---|---|
 | `id` | `string` | Autogenerado | — | Id de documento de Firestore |
-| `nombre` | `string` | Sí | No vacío | Editable solo al momento de creación (desde el buscador en Reservas); sin edición posterior en este módulo (FR-007) |
-| `telefono` | `string` | Sí | No vacío | **No es único** a nivel de sistema (FR-008, confirmado); dos documentos pueden compartir el mismo valor |
+| `nombre` | `string` | Sí | No vacío | Se carga inicialmente desde el buscador en Reservas; editable después desde el detalle del cliente (FR-007, FR-010) |
+| `telefono` | `string` | Sí | Exactamente 10 dígitos numéricos; **único** entre clientes (FR-008a) | Editable desde el detalle del cliente (FR-007, FR-010, FR-011) |
 | `fechaAlta` | `timestamp` | Sí (autogenerado) | — | Fecha de creación del documento, asignada por el sistema al crear el cliente |
 
 ### Validaciones
 
-- `nombre` y `telefono` no vacíos al crear el cliente (validación mínima de
-  formulario, ya que se ingresan solo una vez desde el flujo de carga de
-  Reservas).
-- Sin validación de formato de teléfono más allá de "no vacío": el spec no
-  especifica un formato particular (ej. código de país), y no se justifica
-  agregar esa validación sin un requisito explícito (Principio II).
+- `nombre` no vacío, tanto al crear como al editar el cliente.
+- `telefono` debe ser exactamente 10 dígitos numéricos (ej. `"1122223333"`,
+  sin espacios, guiones ni código de país), tanto al crear como al editar el
+  cliente. Si no cumple el formato, el sistema MUST rechazar el guardado y
+  mostrar un mensaje de validación (FR-011).
 
 ### Relaciones
 
@@ -35,7 +34,10 @@ Corresponde a la entidad "Cliente" definida en [spec.md](./spec.md).
 ### Estados / Transiciones
 
 No aplica: Cliente no tiene una máquina de estados propia. Se crea una única
-vez (FR-005/FR-006a) y no se edita ni elimina desde este módulo (FR-007).
+vez (FR-005/FR-006a) desde el buscador de Reservas; `nombre` y `telefono`
+pueden editarse después desde el detalle del cliente (FR-007, User Story 5),
+sin afectar el historial de reservas asociado. No se elimina desde este
+módulo.
 
 ## Entidad derivada (no persistida): Resumen de Cliente para listado
 

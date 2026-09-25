@@ -109,8 +109,46 @@ al no haber coincidencias se ofrece la opción de crear un cliente nuevo.
    reserva.
 4. **Given** el administrador tiene la opción de elegir un cliente existente o
    crear uno nuevo, **When** decide cuál de las dos opciones tomar, **Then** esa
-   decisión queda a su criterio; el sistema no aplica ninguna lógica automática
-   de coincidencia por nombre o teléfono para decidir por él.
+   decisión queda a su criterio; el sistema no elige por él ni crea el cliente
+   automáticamente.
+5. **Given** el administrador está creando un cliente nuevo y el teléfono que
+   ingresó coincide exactamente con el de un cliente ya existente, **When**
+   confirma la creación, **Then** el sistema NO crea un cliente nuevo (el
+   teléfono es único) y en su lugar le ofrece dos opciones: usar el cliente
+   existente tal cual está, o renombrarlo al nombre recién ingresado y usar
+   ese mismo cliente (actualizando su `nombre`).
+
+---
+
+### User Story 5 - Corregir los datos de un cliente ya cargado (Priority: P2)
+
+Como administrador, quiero poder editar el nombre y/o teléfono de un cliente
+ya creado desde su detalle, para corregir un error de carga (ej. cargué un
+número de documento en vez del teléfono) sin tener que recrear el historial
+de reservas asociado.
+
+**Why this priority**: Es una corrección de datos, no el flujo principal del
+módulo; el módulo es funcional sin esto (los datos se cargan una sola vez
+desde el buscador), pero un error de tipeo sin forma de corregirlo dejaría
+datos incorrectos de forma permanente.
+
+**Independent Test**: Se puede probar de forma aislada entrando al detalle de
+un cliente existente, editando su nombre o teléfono, guardando, y verificando
+que el cambio persiste y que el historial de reservas asociado no se ve
+afectado.
+
+**Acceptance Scenarios**:
+
+1. **Given** el administrador está en el detalle de un cliente, **When** edita
+   su nombre y/o teléfono y guarda, **Then** el cambio persiste y se refleja
+   de inmediato en la lista de Clientes y en cualquier lugar donde se muestre
+   ese cliente.
+2. **Given** el administrador edita un cliente que tiene reservas asociadas,
+   **When** guarda el cambio, **Then** el historial de reservas de ese cliente
+   permanece intacto (la edición no crea ni elimina reservas).
+3. **Given** el administrador intenta guardar el nombre o el teléfono vacíos,
+   **When** confirma, **Then** el sistema rechaza el guardado y muestra un
+   mensaje de validación, sin persistir el cambio.
 
 ---
 
@@ -121,15 +159,18 @@ al no haber coincidencias se ofrece la opción de crear un cliente nuevo.
   debe mostrar un estado vacío indicando que no se encontraron clientes para
   ese criterio de búsqueda, y en el contexto de carga de una reserva, ofrecer
   la opción de crear un cliente nuevo.
-- ¿Qué pasa si dos clientes distintos comparten el mismo teléfono legítimamente
-  (ej. un teléfono familiar)? El sistema no impone unicidad de teléfono entre
-  clientes: quien carga la reserva decide, a partir de los resultados de
-  búsqueda, si se trata del cliente existente o si corresponde crear uno
-  nuevo.
+- ¿Qué pasa si el teléfono ingresado para crear un cliente nuevo coincide
+  exactamente con el de un cliente ya existente? El sistema impone unicidad
+  de teléfono entre clientes (FR-008a): no crea un segundo documento con ese
+  teléfono. En su lugar ofrece usar el cliente existente tal cual está, o
+  renombrarlo al nombre recién ingresado y usar ese mismo cliente.
 - ¿Qué pasa si el administrador elige por error un cliente existente que no
   corresponde a la persona real de la reserva? Corregir esa asociación queda
-  fuera de alcance de este módulo (ver Fuera de alcance: edición manual de un
-  cliente).
+  fuera de alcance de este módulo.
+- ¿Qué pasa si el administrador cargó mal el nombre o el teléfono de un
+  cliente (ej. un documento en vez de un teléfono)? Puede corregirlo editando
+  ese cliente desde su detalle (User Story 5), sin afectar su historial de
+  reservas.
 
 ## Requirements *(mandatory)*
 
@@ -153,17 +194,33 @@ al no haber coincidencias se ofrece la opción de crear un cliente nuevo.
 - **FR-006a**: El sistema MUST, cuando no hay coincidencias o el administrador
   decide no usar ninguna, permitir crear un cliente nuevo con el nombre y
   teléfono ingresados y asociarlo a la reserva.
-- **FR-007**: El sistema MUST NOT ofrecer una pantalla dedicada para crear,
-  editar o eliminar un cliente de forma manual fuera del flujo de carga de una
-  reserva (edición manual y eliminación de clientes están fuera de alcance de
-  este módulo).
-- **FR-008**: El sistema MUST NOT aplicar ninguna lógica automática de
-  coincidencia (por teléfono, nombre, o ambos) para decidir si una reserva
-  corresponde a un cliente existente o a uno nuevo; esa decisión la toma
-  siempre el administrador a partir de los resultados de búsqueda.
+- **FR-007**: El sistema MUST NOT ofrecer una pantalla dedicada para crear o
+  eliminar un cliente de forma manual fuera del flujo de carga de una reserva
+  (alta manual y eliminación de clientes están fuera de alcance de este
+  módulo). El sistema MUST permitir editar el nombre y/o teléfono de un
+  cliente ya creado desde su detalle (User Story 5), sin afectar su historial
+  de reservas asociado.
+- **FR-008**: El sistema MUST NOT decidir ni crear automáticamente una
+  asociación entre una reserva y un cliente existente; esa decisión la toma
+  siempre el administrador a partir de los resultados de búsqueda o del aviso
+  de coincidencia de teléfono (FR-008a).
+- **FR-008a**: El sistema MUST tratar el teléfono como único entre clientes:
+  si al crear un cliente nuevo el teléfono ingresado coincide exactamente con
+  el de un cliente ya existente, el sistema MUST NOT crear un segundo
+  documento con ese teléfono. En su lugar, MUST ofrecer dos opciones: (a)
+  usar el cliente existente tal cual está, o (b) actualizar el `nombre` de
+  ese cliente existente al valor recién ingresado y usar ese mismo cliente.
 - **FR-009**: El sistema MUST contar, como "cantidad de reservas" de un
   cliente, únicamente las reservas asociadas que se encuentran en estado
   "Utilizada".
+- **FR-010**: El sistema MUST validar, antes de guardar una edición de
+  cliente, que el nombre no quede vacío; si lo está, MUST rechazar el
+  guardado y mostrar un mensaje de validación.
+- **FR-011**: El sistema MUST validar, tanto al crear un cliente (desde
+  `BuscadorClientes`) como al editarlo, que el teléfono tenga exactamente 10
+  dígitos numéricos (sin espacios, guiones ni código de país, ej.
+  `"1122223333"`); si no cumple el formato, MUST rechazar el guardado y
+  mostrar un mensaje de validación.
 
 ### Key Entities
 

@@ -17,7 +17,7 @@ Corresponde a la entidad "Reserva" definida en [spec.md](./spec.md).
 | `cantidadPersonas` | `number` | Sí | Entero > 0 | Editable en modo edición |
 | `horasExtra` | `number` | No (default 0) | >= 0 | Editable en modo edición |
 | `precioTotal` | `number` | Sí (calculado) | — | Recalculado en cada creación/edición; fijo entre escrituras |
-| `señaMonto` | `number` | Sí (calculado) | — | Recalculado junto con `precioTotal` |
+| `señaMonto` | `number` | Sí (editable) | `>= 0` | Sugerido automáticamente (30% del precio total) al crear/editar, pero editable manualmente por el administrador; una vez guardado el valor (tocado o no), NO se recalcula en ediciones posteriores salvo que el administrador vuelva a tocarlo (ver Assumptions, agregado 2026-09-25) |
 | `señaPagada` | `boolean` | Sí (default `false`) | — | Editable manualmente vía `DetalleReserva` |
 | `estado` | `"pendiente_seña" \| "señada" \| "cancelada"` | Sí | Solo estos 3 valores | **"utilizada" nunca es un valor persistido** |
 | `creadoEn` | `timestamp` | Sí (autogenerado) | — | `serverTimestamp()` al crear, no cambia después |
@@ -31,13 +31,23 @@ personasExtra = max(0, cantidadPersonas - quinta.capacidadBase)
 precioTotal = precioBase
             + (personasExtra × quinta.costoPersonaExtra)
             + (horasExtra × quinta.costoHoraExtra)
-señaMonto = precioTotal × (quinta.porcentajeSeña / 100)
+señaMonto_sugerido = precioTotal × (quinta.porcentajeSeña / 100)
 ```
 
 `esFinDeSemana(fecha)` es verdadero si el día de la semana de `fecha` es
-sábado o domingo. La fórmula se ejecuta con los valores de `quinta` vigentes
-en el momento exacto de la escritura (creación o edición), no con valores
-históricos.
+sábado o domingo. La fórmula de `precioTotal` se ejecuta con los valores de
+`quinta` vigentes en el momento exacto de la escritura (creación o edición),
+no con valores históricos.
+
+**`señaMonto` (agregado 2026-09-25, cambio de regla de negocio)**:
+`señaMonto_sugerido` es solo el valor con el que se precarga el campo de
+seña en el formulario; el administrador puede sobreescribirlo con el monto
+real efectivamente pagado (puede ser menor, igual o mayor al sugerido — es
+una referencia, no una obligación exacta). El valor que se persiste es el
+que quede en el campo al confirmar el guardado (crear o editar), sea el
+sugerido sin tocar o uno editado a mano. "Restante" siempre se calcula como
+`precioTotal - señaMonto` usando el `señaMonto` real persistido, no el
+sugerido.
 
 ### Validaciones
 
@@ -46,8 +56,10 @@ históricos.
 - No se permite crear ni editar una reserva de forma que quede duplicando
   `quintaId` + `fecha` con otra reserva **activa** (estado distinto de
   `"cancelada"`) — verificado en el cliente antes de escribir.
-- `precioTotal` y `señaMonto` no son editables directamente por el usuario:
-  se derivan siempre de `calcularPrecioReserva`.
+- `precioTotal` no es editable directamente por el usuario: se deriva
+  siempre de `calcularPrecioReserva`.
+- `señaMonto` MUST ser `>= 0`; no tiene tope superior ni debe coincidir con
+  el 30% sugerido (es editable, ver sección anterior).
 - Edición y cancelación MUST rechazarse si `getEstadoVisual(reserva) === "utilizada"`.
 - Cancelación MUST rechazarse además si `estado === "cancelada"` (no se
   cancela dos veces).

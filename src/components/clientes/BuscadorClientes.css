@@ -1,0 +1,78 @@
+.buscador-clientes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.buscador-clientes__input {
+  font-size: 1rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+}
+
+.buscador-clientes__lista {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.buscador-clientes__item {
+  width: 100%;
+  text-align: left;
+  font-size: 1rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ddd;
+  background-color: #fafafa;
+}
+
+.buscador-clientes__nuevo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #eee;
+}
+
+.buscador-clientes__nuevo-titulo {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.buscador-clientes__error {
+  color: #b00020;
+  font-size: 0.85rem;
+}
+
+.buscador-clientes__aviso {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background-color: #fff8e1;
+  font-size: 0.9rem;
+}
+
+.buscador-clientes__boton {
+  font-size: 1rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.5rem;
+  border: none;
+  background-color: #2f6f4f;
+  color: white;
+}
+
+.buscador-clientes__boton-secundario {
+  font-size: 0.95rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.5rem;
+  border: 1px solid #2f6f4f;
+  background: none;
+  color: #2f6f4f;
+}

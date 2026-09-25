@@ -152,6 +152,32 @@ fecha es anterior a la fecha actual y verificando que su estado pasa a
 
 ---
 
+### User Story 6 - Revertir una seña marcada como pagada por error (Priority: P3)
+
+Como administrador, quiero poder revertir a "Pendiente de seña" una reserva
+que marqué como "Señada" por error, para corregir el error sin tener que
+cancelar y recrear la reserva.
+
+**Why this priority**: Corrección de un error de operación, no el flujo
+principal; el módulo ya es funcional sin esto (US1+US2), pero un error de
+tipeo sin forma de corregirlo deja el estado incorrecto de forma permanente.
+
+**Independent Test**: Se puede probar de forma aislada abriendo el modo
+edición de una reserva en estado "Señada", desmarcando "seña pagada", y
+verificando que el estado vuelve a "Pendiente de seña".
+
+**Acceptance Scenarios**:
+
+1. **Given** una reserva está en estado "Señada", **When** el administrador
+   abre el modo edición y desmarca "seña pagada", **Then** al guardar el
+   estado de la reserva vuelve a "Pendiente de seña".
+2. **Given** una reserva está en estado "Pendiente de seña", **When** el
+   administrador abre el modo edición y marca "seña pagada", **Then** al
+   guardar el estado de la reserva pasa a "Señada" (equivalente a la acción
+   de US2, pero disponible también desde edición).
+
+---
+
 ### Edge Cases
 
 - ¿Qué pasa si el administrador intenta cargar una reserva para una quinta que
@@ -206,6 +232,12 @@ fecha es anterior a la fecha actual y verificando que su estado pasa a
   fijo (snapshot) asociado a la reserva al momento de guardarla, de forma que
   cambios posteriores en la configuración de precios de la quinta no alteren
   reservas ya guardadas.
+- **FR-006a** (agregado 2026-09-25): El sistema MUST permitir al
+  administrador editar manualmente el monto de seña (`señaMonto`) antes de
+  confirmar la carga o una edición, sobreescribiendo el monto sugerido
+  (FR-005) con el monto real efectivamente acordado o pagado, que puede ser
+  menor, igual o mayor al sugerido. El sistema MUST NOT exigir que
+  `señaMonto` coincida con el porcentaje de seña configurado para la quinta.
 - **FR-007**: El sistema MUST asignar el estado "Pendiente de seña" a toda
   reserva nueva al momento de crearla.
 - **FR-008**: El sistema MUST permitir marcar manualmente una reserva en
@@ -249,6 +281,25 @@ fecha es anterior a la fecha actual y verificando que su estado pasa a
 - **FR-019**: El sistema MUST conservar una reserva "Cancelada" en Firestore
   y seguir mostrándola en el historial de reservas del cliente asociado
   (módulo Clientes), marcada con estado "Cancelada".
+- **FR-020**: El sistema MUST mostrar, en el detalle de una reserva, el monto
+  restante a pagar (`precioTotal - señaMonto`), además del precio total y el
+  monto de seña.
+- **FR-021**: El sistema MUST permitir, desde el modo edición de una reserva
+  no "Utilizada" ni "Cancelada", cambiar manualmente el indicador de seña
+  pagada en cualquier sentido (marcar o desmarcar), ajustando el `estado`
+  entre "Pendiente de seña" y "Señada" en consecuencia al guardar.
+- **FR-022**: El sistema MUST mostrar, en la pantalla "Próximos alquileres",
+  tanto las reservas activas futuras como las visitas futuras (módulo
+  Visitas) ordenadas juntas por fecha, cada visita distinguida con la
+  etiqueta "Visita" en lugar de un estado de seña. El sistema MUST ofrecer
+  un control para ocultar las visitas de esa lista, mostrándolas por
+  defecto.
+- **FR-023** (agregado 2026-09-25): El sistema MUST permitir editar
+  `señaMonto` desde el modo edición de una reserva no "Utilizada" ni
+  "Cancelada" (FR-006a), sin recalcularlo automáticamente cuando la edición
+  solo modifica otros campos (quinta, fecha, cantidad de personas, horas
+  extra) — `señaMonto` solo cambia si el administrador lo edita
+  explícitamente.
 
 ### Key Entities
 

@@ -60,6 +60,47 @@ correspondiente con un color distinto al de una reserva.
 
 ---
 
+### User Story 3 - Cargar una reserva a partir de una visita (Priority: P2, agregada 2026-09-25 post-implementación)
+
+Como administrador, cuando una persona que visitó decide alquilar, quiero
+poder iniciar la carga de una reserva a partir de esa visita, con la quinta,
+fecha y datos de contacto ya precargados como punto de partida editable,
+para no tener que volver a tipear todo desde cero.
+
+**Why this priority**: Ahorra tiempo en el caso de conversión visita→alquiler,
+pero no es indispensable: el administrador siempre puede cargar la reserva
+desde cero con el flujo normal (US1 de Reservas).
+
+**Independent Test**: Se puede probar de forma aislada abriendo el detalle de
+una visita ya registrada, tocando "Crear reserva desde esta visita", y
+verificando que se abre el formulario de carga de reserva con la quinta y la
+fecha de la visita precargadas (ambas editables) y el buscador de clientes
+con el nombre de quien visitó ya escrito.
+
+**Acceptance Scenarios**:
+
+1. **Given** el administrador está viendo el detalle de una visita, **When**
+   toca "Crear reserva desde esta visita", **Then** se abre el formulario de
+   alta de reserva (`FormularioReserva`, modo "crear") con la `quintaId` y la
+   `fecha` de la visita precargadas, ambas editables.
+2. **Given** el formulario de reserva se abrió a partir de una visita,
+   **When** se muestra el buscador de clientes, **Then** el campo de
+   búsqueda ya tiene escrito el `nombreVisitante` de la visita, permitiendo
+   elegir un cliente existente con ese nombre o crear uno nuevo confirmando
+   el teléfono (precargado con `telefonoVisitante` si la visita lo tenía).
+3. **Given** el administrador completa y confirma la reserva iniciada desde
+   una visita, **When** se guarda, **Then** se crea una Reserva nueva
+   siguiendo las mismas reglas que cualquier alta (módulo Reservas); la
+   Visita original no se modifica ni se elimina como consecuencia de esta
+   acción.
+
+**Nota de alineación con FR-006**: esto NO es la "conversión automática"
+que FR-006 prohíbe — no se crea ninguna Reserva ni Cliente sin que el
+administrador revise y confirme cada dato en el formulario estándar; es
+solo un atajo de precarga.
+
+---
+
 ### Edge Cases
 
 - ¿Qué pasa si se intenta cargar una visita para una quinta y fecha que ya
@@ -101,6 +142,13 @@ correspondiente con un color distinto al de una reserva.
 - **FR-008**: El sistema MUST NOT crear ni asociar un registro de Cliente al
   registrar una visita; el nombre y teléfono de quien visita se guardan
   únicamente en la entidad Visita.
+- **FR-009**: El sistema MUST ofrecer, desde el detalle de una visita, una
+  acción para iniciar la carga de una reserva (módulo Reservas) con la
+  `quintaId` y `fecha` de esa visita precargadas como valores iniciales
+  editables, y el buscador de clientes de esa reserva con el
+  `nombreVisitante` ya escrito. Esta acción MUST NOT crear ni modificar
+  ningún registro por sí sola: la Reserva solo se crea si el administrador
+  completa y confirma el formulario estándar de alta.
 
 ### Key Entities
 

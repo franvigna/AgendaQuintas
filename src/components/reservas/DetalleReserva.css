@@ -1,0 +1,54 @@
+.detalle-reserva {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1rem;
+}
+
+.detalle-reserva__quinta {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.detalle-reserva__cliente {
+  color: #555;
+}
+
+.detalle-reserva__estado {
+  font-weight: bold;
+  color: #2f6f4f;
+}
+
+.detalle-reserva__error {
+  color: #b00020;
+  font-size: 0.9rem;
+}
+
+.detalle-reserva__acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.detalle-reserva__boton {
+  font-size: 1rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.5rem;
+  border: none;
+  background-color: #2f6f4f;
+  color: white;
+}
+
+.detalle-reserva__boton:disabled {
+  opacity: 0.6;
+}
+
+.detalle-reserva__boton-cancelar {
+  font-size: 1rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.5rem;
+  border: 1px solid #b00020;
+  background: none;
+  color: #b00020;
+}

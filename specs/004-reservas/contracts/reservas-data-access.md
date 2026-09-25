@@ -96,14 +96,18 @@ function crearReserva(datos: {
   fecha: string;
   cantidadPersonas: number;
   horasExtra: number;
+  señaMonto: number;
 }): Promise<string>;
 ```
 
-- **Comportamiento**: calcula `precioTotal`/`señaMonto` con la quinta
-  vigente, valida unicidad quinta+fecha contra reservas **activas**
-  (`estado != "cancelada"`), y crea el documento con
-  `estado: "pendiente_seña"`, `señaPagada: false`,
+- **Comportamiento**: calcula `precioTotal` con la quinta vigente, valida
+  unicidad quinta+fecha contra reservas **activas** (`estado != "cancelada"`),
+  y crea el documento con el `señaMonto` provisto (FR-006a — ya no se
+  recalcula internamente: el llamador, `FormularioReserva`, lo precarga con
+  el 30% sugerido de `calcularPrecioReserva` pero permite editarlo antes de
+  confirmar), `estado: "pendiente_seña"`, `señaPagada: false`,
   `creadoEn: serverTimestamp()`, `actualizadoEn: serverTimestamp()`.
+- **Precondición**: `señaMonto >= 0`.
 
 ## Función `editarReserva(reservaId, datos): Promise<void>`
 
@@ -116,15 +120,21 @@ function editarReserva(
     fecha: string;
     cantidadPersonas: number;
     horasExtra: number;
+    señaMonto: number;
+    señaPagada: boolean;
   }>
 ): Promise<void>;
 ```
 
-- **Comportamiento**: recalcula `precioTotal`/`señaMonto` con la quinta
+- **Comportamiento**: recalcula únicamente `precioTotal` con la quinta
   vigente (usando `quintaId` nuevo si se cambió), valida unicidad
   quinta+fecha contra otras reservas activas (excluyendo la propia reserva
   que se está editando), actualiza los campos provistos y
-  `actualizadoEn: serverTimestamp()`. No modifica `estado` ni `señaPagada`.
+  `actualizadoEn: serverTimestamp()`. `señaMonto` NO se recalcula
+  automáticamente (FR-023): solo cambia si `datos.señaMonto` viene presente,
+  en cuyo caso se persiste tal cual (ya validado `>= 0` por el llamador). Si
+  `datos.señaPagada` está presente, además actualiza `estado` a `"señada"`
+  (si `true`) o `"pendiente_seña"` (si `false`), en ambos sentidos (FR-021).
 - **Precondición**: MUST rechazarse si `getEstadoVisual(reserva) === "utilizada"`
   o si `reserva.estado === "cancelada"` (FR-013).
 

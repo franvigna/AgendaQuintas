@@ -87,6 +87,30 @@ funcionalmente equivalente hoy, pero más frágil ante un futuro cuarto
 estado persistido; se prefiere `!=` por robustez (Principio II: menos
 mantenimiento futuro).
 
+## Decisión: `ListaProximosAlquileres` incluye Visitas, con toggle para ocultarlas (agregado 2026-09-25, post-implementación)
+
+**Decision**: `ListaProximosAlquileres` (pantalla "Próximos alquileres")
+combina reservas activas futuras (`useReservas()`, excluyendo canceladas) y
+visitas futuras (`useVisitasDelMes` del módulo Visitas, o un hook análogo
+sin filtro de mes), ordenadas juntas por fecha. Cada visita se muestra con
+el mismo formato de item que una reserva (fecha, quinta, nombre), pero con
+la etiqueta "Visita" en lugar de un estado de seña. Un toggle visible en la
+pantalla permite ocultar las visitas y ver solo reservas; por defecto las
+visitas se muestran.
+
+**Rationale**: Pedido explícito del usuario tras probar el módulo Visitas:
+quiere ver de un vistazo todo lo próximo (alquileres y visitas) sin tener
+que cruzar dos pantallas, pero sin perder la opción de filtrar solo
+reservas si lo prefiere en un momento dado.
+
+**Impacto en Visitas (`005-visitas`)**: este es el primer consumidor de
+datos de Visitas fuera del propio módulo Agenda; no cambia el modelo de
+datos de Visita ni agrega campos, solo agrega un nuevo lugar de lectura.
+
+**Alternatives considered**: Pantallas separadas ("Próximos alquileres" y
+"Próximas visitas") — descartado explícitamente por el usuario, que pidió
+verlas juntas por defecto.
+
 ## Resumen
 
 No quedan unknowns pendientes. Este research reemplaza la versión previa;
