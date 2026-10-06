@@ -49,19 +49,14 @@ export async function crearReserva(datos: {
   fecha: string;
   cantidadPersonas: number;
   horasExtra: number;
-  señaMonto: number;
 }): Promise<string> {
-  if (datos.señaMonto < 0) {
-    throw new Error("El monto de seña no puede ser negativo.");
-  }
-
   const quinta = await obtenerQuinta(datos.quintaId);
 
   if (await existeConflicto(datos.quintaId, datos.fecha)) {
     throw new Error("Esa quinta ya tiene una reserva activa para esa fecha.");
   }
 
-  const { precioTotal } = calcularPrecioReserva(
+  const { precioTotal, señaMonto } = calcularPrecioReserva(
     quinta,
     datos.cantidadPersonas,
     datos.horasExtra,
@@ -71,6 +66,7 @@ export async function crearReserva(datos: {
   const ref = await addDoc(collection(db, "reservas"), {
     ...datos,
     precioTotal,
+    señaMonto,
     señaPagada: false,
     estado: "pendiente_seña",
     creadoEn: serverTimestamp(),
@@ -105,14 +101,8 @@ export async function editarReserva(
     fecha: string;
     cantidadPersonas: number;
     horasExtra: number;
-    señaMonto: number;
-    señaPagada: boolean;
   }>,
 ): Promise<void> {
-  if (datos.señaMonto !== undefined && datos.señaMonto < 0) {
-    throw new Error("El monto de seña no puede ser negativo.");
-  }
-
   const reservaActual = await obtenerReserva(reservaId);
   asegurarEditable(reservaActual);
 
@@ -128,28 +118,36 @@ export async function editarReserva(
   const quinta = await obtenerQuinta(quintaId);
   const { precioTotal } = calcularPrecioReserva(quinta, cantidadPersonas, horasExtra, fecha);
 
-  const estado =
-    datos.señaPagada === undefined
-      ? undefined
-      : datos.señaPagada
-        ? "señada"
-        : "pendiente_seña";
-
   await updateDoc(doc(db, "reservas", reservaId), {
     ...datos,
-    ...(estado !== undefined ? { estado } : {}),
     precioTotal,
     actualizadoEn: serverTimestamp(),
   });
 }
 
-export async function marcarSeñaPagada(reservaId: string): Promise<void> {
+export async function marcarSeñaPagada(reservaId: string, montoPagado: number): Promise<void> {
+  if (montoPagado < 0) {
+    throw new Error("El monto pagado no puede ser negativo.");
+  }
+
   const reserva = await obtenerReserva(reservaId);
   asegurarEditable(reserva);
 
   await updateDoc(doc(db, "reservas", reservaId), {
+    señaMonto: montoPagado,
     señaPagada: true,
     estado: "señada",
+    actualizadoEn: serverTimestamp(),
+  });
+}
+
+export async function revertirSeñaPagada(reservaId: string): Promise<void> {
+  const reserva = await obtenerReserva(reservaId);
+  asegurarEditable(reserva);
+
+  await updateDoc(doc(db, "reservas", reservaId), {
+    señaPagada: false,
+    estado: "pendiente_seña",
     actualizadoEn: serverTimestamp(),
   });
 }

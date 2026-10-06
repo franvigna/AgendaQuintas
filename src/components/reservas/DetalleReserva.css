@@ -52,3 +52,27 @@
   background: none;
   color: #b00020;
 }
+
+.detalle-reserva__carga-seña {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background-color: #eef6f0;
+  margin-top: 0.5rem;
+}
+
+.detalle-reserva__campo-monto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.detalle-reserva__campo-monto input {
+  font-size: 1rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+}

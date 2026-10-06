@@ -167,20 +167,22 @@ Single project (frontend-only), rutas bajo `src/` en la raíz del repositorio, s
 
 ---
 
-## Phase 7d: Seña editable manualmente (agregado 2026-09-25, post-implementación)
+## Phase 7d: Monto real de seña al marcarla como pagada (corregido 2026-09-30)
 
-**Goal**: Permitir que el administrador edite el monto de seña (en vez de solo aceptar el 30% calculado), tanto al crear como al editar, sin que se recalcule automáticamente en ediciones posteriores que no la toquen (FR-006a, FR-023).
+**Goal**: Al crear una reserva, `señaMonto` sigue siendo el 30% sugerido (no editable ahí). Al marcar la seña como pagada, el administrador ingresa el monto real que pagó el cliente, que reemplaza `señaMonto`; además se puede revertir una seña marcada por error (FR-008, FR-008a, FR-021).
 
-**Independent Test**: Crear una reserva cambiando el monto de seña sugerido por otro valor, guardar, y verificar que el monto persiste; luego editar la reserva cambiando solo la cantidad de personas (sin tocar la seña) y verificar que la seña NO vuelve al 30% del nuevo precio.
+**Independent Test**: Crear una reserva (señaMonto = sugerido). Marcar "seña pagada" ingresando un monto distinto al sugerido (ej. la mitad); verificar que `señaMonto` pasa a ese valor y "Restante" se recalcula en consecuencia. Tocar "Revertir a pendiente de seña" y verificar que vuelve a "Pendiente de seña" sin perder el último monto cargado.
 
 ### Implementation
 
-- [ ] T025g Ajustar `crearReserva` en el servicio de reservas para recibir `señaMonto: number` como parte de `datos` en vez de calcularlo internamente; validar `señaMonto >= 0`
-- [ ] T025h Ajustar `editarReserva` para aceptar `señaMonto?: number` opcional en `datos`; si no viene, NO tocar el `señaMonto` ya persistido (dejar de recalcularlo automáticamente)
-- [ ] T025i Ajustar `FormularioReserva`: agregar un campo numérico editable de "Seña", precargado con el 30% sugerido (`calcularPrecioReserva`) en modo crear, o con `reserva.señaMonto` en modo editar; el resumen en vivo usa el valor del campo (editado o no) para calcular "Restante", no el sugerido
-- [ ] T025j Ajustar `DetalleReserva` para mostrar el `señaMonto` real persistido (ya lo hace) y confirmar que "Restante" se calcula sobre ese valor
+- [x] T025g ~~(revertido)~~ `crearReserva` vuelve a calcular `señaMonto` internamente (30% sugerido), sin recibirlo del formulario
+- [x] T025h ~~(revertido)~~ `editarReserva` ya no acepta `señaMonto` ni `señaPagada` entre sus campos
+- [x] T025i ~~(revertido)~~ `FormularioReserva` ya no tiene un campo editable de seña ni el checkbox de "seña pagada"; solo muestra la seña sugerida como texto informativo
+- [ ] T025k Ajustar `marcarSeñaPagada(reservaId, montoPagado)` en el servicio de reservas para recibir el monto real pagado y persistirlo en `señaMonto` (reemplazando el valor existente), además de `señaPagada: true` y `estado: "señada"` (FR-008)
+- [ ] T025l Implementar `revertirSeñaPagada(reservaId)` en el servicio de reservas: `señaPagada: false`, `estado: "pendiente_seña"`, sin tocar `señaMonto` (FR-008a)
+- [ ] T025m Ajustar `DetalleReserva`: "Marcar seña como pagada" abre un input numérico (precargado con el `señaMonto` actual) en vez de ejecutar la acción directamente; al confirmar, invoca `marcarSeñaPagada` con ese monto. Agregar botón "Revertir a pendiente de seña", visible solo cuando el estado visual es "Señada", conectado a `revertirSeñaPagada`
 
-**Checkpoint**: la seña es una referencia editable, no un valor fijo forzado al 30%.
+**Checkpoint**: la seña sugerida es solo una referencia; el monto oficial se carga al marcarla como pagada, y se puede revertir sin perder el registro.
 
 ---
 

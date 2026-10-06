@@ -232,16 +232,21 @@ verificando que el estado vuelve a "Pendiente de seña".
   fijo (snapshot) asociado a la reserva al momento de guardarla, de forma que
   cambios posteriores en la configuración de precios de la quinta no alteren
   reservas ya guardadas.
-- **FR-006a** (agregado 2026-09-25): El sistema MUST permitir al
-  administrador editar manualmente el monto de seña (`señaMonto`) antes de
-  confirmar la carga o una edición, sobreescribiendo el monto sugerido
-  (FR-005) con el monto real efectivamente acordado o pagado, que puede ser
-  menor, igual o mayor al sugerido. El sistema MUST NOT exigir que
-  `señaMonto` coincida con el porcentaje de seña configurado para la quinta.
 - **FR-007**: El sistema MUST asignar el estado "Pendiente de seña" a toda
-  reserva nueva al momento de crearla.
-- **FR-008**: El sistema MUST permitir marcar manualmente una reserva en
-  estado "Pendiente de seña" como "Señada".
+  reserva nueva al momento de crearla, con `señaMonto` inicializado al monto
+  sugerido (FR-005).
+- **FR-008** (corregido 2026-09-30): El sistema MUST permitir marcar
+  manualmente una reserva en estado "Pendiente de seña" como "Señada"
+  pidiendo al administrador el monto real que efectivamente pagó el
+  cliente (que puede ser menor, igual o mayor al monto sugerido en FR-005 —
+  no existe un monto de seña "fijo" para el negocio, solo una referencia).
+  Ese monto ingresado MUST reemplazar el `señaMonto` de la reserva
+  (dejando de reflejar el sugerido) y el estado MUST pasar a "Señada". El
+  sistema MUST NOT exigir que el monto ingresado coincida con el
+  porcentaje de seña configurado para la quinta.
+- **FR-008a** (agregado 2026-09-30): El sistema MUST permitir revertir una
+  reserva en estado "Señada" de vuelta a "Pendiente de seña", para corregir
+  una seña marcada por error.
 - **FR-009**: El sistema MUST cambiar automáticamente el estado de una reserva
   a "Utilizada" cuando su fecha ya pasó, sin requerir acción manual. Esta
   evaluación se realiza al vuelo (en el cliente/UI, comparando la fecha actual
@@ -284,22 +289,19 @@ verificando que el estado vuelve a "Pendiente de seña".
 - **FR-020**: El sistema MUST mostrar, en el detalle de una reserva, el monto
   restante a pagar (`precioTotal - señaMonto`), además del precio total y el
   monto de seña.
-- **FR-021**: El sistema MUST permitir, desde el modo edición de una reserva
-  no "Utilizada" ni "Cancelada", cambiar manualmente el indicador de seña
-  pagada en cualquier sentido (marcar o desmarcar), ajustando el `estado`
-  entre "Pendiente de seña" y "Señada" en consecuencia al guardar.
+- **FR-021** (corregido 2026-09-30): El modo edición de una reserva (T017,
+  `FormularioReserva`) MUST NOT incluir el indicador de seña pagada ni el
+  monto de seña entre sus campos editables; esa acción vive exclusivamente
+  en `DetalleReserva` a través de "Marcar seña como pagada" (FR-008) y
+  "Revertir a pendiente de seña" (FR-008a). El sistema MUST recalcular
+  únicamente `precioTotal` al guardar una edición (FR-015); `señaMonto` NO
+  se recalcula automáticamente al editar otros campos de la reserva.
 - **FR-022**: El sistema MUST mostrar, en la pantalla "Próximos alquileres",
   tanto las reservas activas futuras como las visitas futuras (módulo
   Visitas) ordenadas juntas por fecha, cada visita distinguida con la
   etiqueta "Visita" en lugar de un estado de seña. El sistema MUST ofrecer
   un control para ocultar las visitas de esa lista, mostrándolas por
   defecto.
-- **FR-023** (agregado 2026-09-25): El sistema MUST permitir editar
-  `señaMonto` desde el modo edición de una reserva no "Utilizada" ni
-  "Cancelada" (FR-006a), sin recalcularlo automáticamente cuando la edición
-  solo modifica otros campos (quinta, fecha, cantidad de personas, horas
-  extra) — `señaMonto` solo cambia si el administrador lo edita
-  explícitamente.
 
 ### Key Entities
 

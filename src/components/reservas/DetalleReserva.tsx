@@ -2,7 +2,11 @@ import { useState } from "react";
 import { useQuintas } from "../../hooks/useQuintas";
 import { useClientes } from "../../hooks/useClientes";
 import { getEstadoVisual } from "../../utils/getEstadoVisual";
-import { marcarSeñaPagada, cancelarReserva } from "../../services/reservas";
+import {
+  marcarSeñaPagada,
+  revertirSeñaPagada,
+  cancelarReserva,
+} from "../../services/reservas";
 import { FormularioReserva } from "./FormularioReserva";
 import type { Reserva } from "../../types/reserva";
 import "./DetalleReserva.css";
@@ -22,6 +26,8 @@ export function DetalleReserva({ reserva }: DetalleReservaProps) {
   const { quintas } = useQuintas();
   const { clientes } = useClientes();
   const [editando, setEditando] = useState(false);
+  const [cargandoSeña, setCargandoSeña] = useState(false);
+  const [montoIngresado, setMontoIngresado] = useState(reserva.señaMonto);
   const [error, setError] = useState<string | null>(null);
   const [procesando, setProcesando] = useState(false);
 
@@ -30,13 +36,30 @@ export function DetalleReserva({ reserva }: DetalleReservaProps) {
   const estadoVisual = getEstadoVisual(reserva);
   const esEditable = estadoVisual !== "utilizada" && reserva.estado !== "cancelada";
 
-  async function manejarMarcarSeñaPagada(): Promise<void> {
+  async function manejarConfirmarSeña(): Promise<void> {
+    if (montoIngresado < 0) {
+      setError("El monto pagado no puede ser negativo.");
+      return;
+    }
     setProcesando(true);
     setError(null);
     try {
-      await marcarSeñaPagada(reserva.id);
+      await marcarSeñaPagada(reserva.id, montoIngresado);
+      setCargandoSeña(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al marcar la seña como pagada.");
+      setError(err instanceof Error ? err.message : "Error al registrar la seña pagada.");
+    } finally {
+      setProcesando(false);
+    }
+  }
+
+  async function manejarRevertirSeña(): Promise<void> {
+    setProcesando(true);
+    setError(null);
+    try {
+      await revertirSeñaPagada(reserva.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al revertir la seña.");
     } finally {
       setProcesando(false);
     }
@@ -81,14 +104,54 @@ export function DetalleReserva({ reserva }: DetalleReservaProps) {
 
       {error !== null && <p className="detalle-reserva__error">{error}</p>}
 
+      {estadoVisual === "pendiente_seña" && cargandoSeña && (
+        <div className="detalle-reserva__carga-seña">
+          <label className="detalle-reserva__campo-monto">
+            Monto que pagó el cliente
+            <input
+              type="number"
+              value={montoIngresado}
+              onChange={(e) => setMontoIngresado(Number(e.target.value))}
+            />
+          </label>
+          <div className="detalle-reserva__acciones">
+            <button
+              className="detalle-reserva__boton"
+              onClick={manejarConfirmarSeña}
+              disabled={procesando}
+            >
+              Confirmar monto pagado
+            </button>
+            <button
+              className="detalle-reserva__boton-cancelar"
+              onClick={() => setCargandoSeña(false)}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="detalle-reserva__acciones">
-        {estadoVisual === "pendiente_seña" && (
+        {estadoVisual === "pendiente_seña" && !cargandoSeña && (
           <button
             className="detalle-reserva__boton"
-            onClick={manejarMarcarSeñaPagada}
-            disabled={procesando}
+            onClick={() => {
+              setMontoIngresado(reserva.señaMonto);
+              setCargandoSeña(true);
+            }}
           >
             Marcar seña como pagada
+          </button>
+        )}
+
+        {estadoVisual === "señada" && (
+          <button
+            className="detalle-reserva__boton-cancelar"
+            onClick={manejarRevertirSeña}
+            disabled={procesando}
+          >
+            Revertir a pendiente de seña
           </button>
         )}
 

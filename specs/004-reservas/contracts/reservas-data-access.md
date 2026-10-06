@@ -96,18 +96,14 @@ function crearReserva(datos: {
   fecha: string;
   cantidadPersonas: number;
   horasExtra: number;
-  señaMonto: number;
 }): Promise<string>;
 ```
 
-- **Comportamiento**: calcula `precioTotal` con la quinta vigente, valida
-  unicidad quinta+fecha contra reservas **activas** (`estado != "cancelada"`),
-  y crea el documento con el `señaMonto` provisto (FR-006a — ya no se
-  recalcula internamente: el llamador, `FormularioReserva`, lo precarga con
-  el 30% sugerido de `calcularPrecioReserva` pero permite editarlo antes de
-  confirmar), `estado: "pendiente_seña"`, `señaPagada: false`,
+- **Comportamiento**: calcula `precioTotal`/`señaMonto` con la quinta
+  vigente (`señaMonto` = sugerido, 30% del precio total), valida unicidad
+  quinta+fecha contra reservas **activas** (`estado != "cancelada"`), y crea
+  el documento con `estado: "pendiente_seña"`, `señaPagada: false`,
   `creadoEn: serverTimestamp()`, `actualizadoEn: serverTimestamp()`.
-- **Precondición**: `señaMonto >= 0`.
 
 ## Función `editarReserva(reservaId, datos): Promise<void>`
 
@@ -120,8 +116,6 @@ function editarReserva(
     fecha: string;
     cantidadPersonas: number;
     horasExtra: number;
-    señaMonto: number;
-    señaPagada: boolean;
   }>
 ): Promise<void>;
 ```
@@ -130,19 +124,42 @@ function editarReserva(
   vigente (usando `quintaId` nuevo si se cambió), valida unicidad
   quinta+fecha contra otras reservas activas (excluyendo la propia reserva
   que se está editando), actualiza los campos provistos y
-  `actualizadoEn: serverTimestamp()`. `señaMonto` NO se recalcula
-  automáticamente (FR-023): solo cambia si `datos.señaMonto` viene presente,
-  en cuyo caso se persiste tal cual (ya validado `>= 0` por el llamador). Si
-  `datos.señaPagada` está presente, además actualiza `estado` a `"señada"`
-  (si `true`) o `"pendiente_seña"` (si `false`), en ambos sentidos (FR-021).
+  `actualizadoEn: serverTimestamp()`. `señaMonto` y `señaPagada` NO forman
+  parte de `datos`: no se tocan desde esta función (FR-021, corregido
+  2026-09-30) — esas acciones viven en `marcarSeñaPagada` y
+  `revertirSeñaPagada`.
 - **Precondición**: MUST rechazarse si `getEstadoVisual(reserva) === "utilizada"`
   o si `reserva.estado === "cancelada"` (FR-013).
 
-## Función `marcarSeñaPagada(reservaId): Promise<void>`
+## Función `marcarSeñaPagada(reservaId, montoPagado): Promise<void>` (corregido 2026-09-30)
 
-Sin cambios: actualiza `señaPagada: true` y `estado: "señada"`.
-Precondición: rechazado si `getEstadoVisual(reserva) === "utilizada"` o si
-ya está `"cancelada"`.
+```ts
+function marcarSeñaPagada(reservaId: string, montoPagado: number): Promise<void>;
+```
+
+- **Comportamiento**: actualiza `señaMonto: montoPagado` (reemplaza el valor
+  existente, sea el sugerido u otro), `señaPagada: true`,
+  `estado: "señada"`, `actualizadoEn: serverTimestamp()` (FR-008).
+- **Precondición**: `montoPagado >= 0`; rechazado si
+  `getEstadoVisual(reserva) === "utilizada"` o si ya está `"cancelada"`.
+- **Invocado por**: `DetalleReserva`, a través de un input de monto que el
+  administrador completa con lo que efectivamente pagó el cliente (no hay
+  un monto de seña "correcto" único: el 30% sugerido es solo una
+  referencia).
+
+## Función `revertirSeñaPagada(reservaId): Promise<void>` (agregado 2026-09-30)
+
+```ts
+function revertirSeñaPagada(reservaId: string): Promise<void>;
+```
+
+- **Comportamiento**: actualiza `señaPagada: false`, `estado: "pendiente_seña"`,
+  `actualizadoEn: serverTimestamp()`. NO modifica `señaMonto` (queda con el
+  último monto cargado, visible si se vuelve a marcar como pagada) (FR-008a).
+- **Precondición**: rechazado si `getEstadoVisual(reserva) === "utilizada"`
+  o si ya está `"cancelada"`.
+- **Invocado por**: `DetalleReserva`, para corregir una seña marcada por
+  error.
 
 ## Función `cancelarReserva(reservaId): Promise<void>`
 

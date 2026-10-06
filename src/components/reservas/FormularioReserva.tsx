@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuintas } from "../../hooks/useQuintas";
 import { useClientes } from "../../hooks/useClientes";
 import { BuscadorClientes } from "../clientes/BuscadorClientes";
@@ -36,9 +36,6 @@ export function FormularioReserva({
     reserva?.cantidadPersonas ?? 1,
   );
   const [horasExtra, setHorasExtra] = useState(reserva?.horasExtra ?? 0);
-  const [señaPagada, setSeñaPagada] = useState(reserva?.señaPagada ?? false);
-  const [señaMonto, setSeñaMonto] = useState(reserva?.señaMonto ?? 0);
-  const [señaTocadaManualmente, setSeñaTocadaManualmente] = useState(modo === "editar");
   const [error, setError] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
 
@@ -48,13 +45,6 @@ export function FormularioReserva({
     quintaSeleccionada && fecha !== ""
       ? calcularPrecioReserva(quintaSeleccionada, cantidadPersonas, horasExtra, fecha)
       : null;
-
-  const señaSugerida = resumen?.señaMonto;
-  useEffect(() => {
-    if (!señaTocadaManualmente && señaSugerida !== undefined) {
-      setSeñaMonto(señaSugerida);
-    }
-  }, [señaSugerida, señaTocadaManualmente]);
 
   async function manejarConfirmar(): Promise<void> {
     if (quintaId === "" || clienteId === "" || fecha === "") {
@@ -69,23 +59,12 @@ export function FormularioReserva({
       setError("Las horas extra no pueden ser negativas.");
       return;
     }
-    if (señaMonto < 0) {
-      setError("El monto de seña no puede ser negativo.");
-      return;
-    }
 
     setError(null);
     setGuardando(true);
     try {
       if (modo === "crear") {
-        await crearReserva({
-          quintaId,
-          clienteId,
-          fecha,
-          cantidadPersonas,
-          horasExtra,
-          señaMonto,
-        });
+        await crearReserva({ quintaId, clienteId, fecha, cantidadPersonas, horasExtra });
       } else if (reserva) {
         await editarReserva(reserva.id, {
           quintaId,
@@ -93,8 +72,6 @@ export function FormularioReserva({
           fecha,
           cantidadPersonas,
           horasExtra,
-          señaMonto,
-          señaPagada,
         });
       }
       onGuardado();
@@ -164,34 +141,10 @@ export function FormularioReserva({
         />
       </label>
 
-      <label className="formulario-reserva__campo">
-        Seña (sugerida: {resumen ? `$${resumen.señaMonto.toLocaleString("es-AR")}` : "-"})
-        <input
-          type="number"
-          value={señaMonto}
-          onChange={(e) => {
-            setSeñaTocadaManualmente(true);
-            setSeñaMonto(Number(e.target.value));
-          }}
-        />
-      </label>
-
-      {modo === "editar" && (
-        <label className="formulario-reserva__campo formulario-reserva__campo--checkbox">
-          <input
-            type="checkbox"
-            checked={señaPagada}
-            onChange={(e) => setSeñaPagada(e.target.checked)}
-          />
-          Seña pagada
-        </label>
-      )}
-
       {resumen && (
         <div className="formulario-reserva__resumen">
           <p>Precio total: ${resumen.precioTotal.toLocaleString("es-AR")}</p>
-          <p>Seña: ${señaMonto.toLocaleString("es-AR")}</p>
-          <p>Restante: ${(resumen.precioTotal - señaMonto).toLocaleString("es-AR")}</p>
+          <p>Seña sugerida (30%): ${resumen.señaMonto.toLocaleString("es-AR")}</p>
         </div>
       )}
 

@@ -17,7 +17,7 @@ Corresponde a la entidad "Reserva" definida en [spec.md](./spec.md).
 | `cantidadPersonas` | `number` | Sí | Entero > 0 | Editable en modo edición |
 | `horasExtra` | `number` | No (default 0) | >= 0 | Editable en modo edición |
 | `precioTotal` | `number` | Sí (calculado) | — | Recalculado en cada creación/edición; fijo entre escrituras |
-| `señaMonto` | `number` | Sí (editable) | `>= 0` | Sugerido automáticamente (30% del precio total) al crear/editar, pero editable manualmente por el administrador; una vez guardado el valor (tocado o no), NO se recalcula en ediciones posteriores salvo que el administrador vuelva a tocarlo (ver Assumptions, agregado 2026-09-25) |
+| `señaMonto` | `number` | Sí | `>= 0` | Inicializado al crear con el monto sugerido (30% del precio total, no editable en ese momento). Se reemplaza por el monto real que ingresa el administrador al marcar la seña como pagada (`marcarSeñaPagada`, ver contrato); no se recalcula automáticamente por ediciones posteriores de otros campos (corregido 2026-09-30, ver Assumptions) |
 | `señaPagada` | `boolean` | Sí (default `false`) | — | Editable manualmente vía `DetalleReserva` |
 | `estado` | `"pendiente_seña" \| "señada" \| "cancelada"` | Sí | Solo estos 3 valores | **"utilizada" nunca es un valor persistido** |
 | `creadoEn` | `timestamp` | Sí (autogenerado) | — | `serverTimestamp()` al crear, no cambia después |
@@ -39,15 +39,17 @@ sábado o domingo. La fórmula de `precioTotal` se ejecuta con los valores de
 `quinta` vigentes en el momento exacto de la escritura (creación o edición),
 no con valores históricos.
 
-**`señaMonto` (agregado 2026-09-25, cambio de regla de negocio)**:
-`señaMonto_sugerido` es solo el valor con el que se precarga el campo de
-seña en el formulario; el administrador puede sobreescribirlo con el monto
-real efectivamente pagado (puede ser menor, igual o mayor al sugerido — es
-una referencia, no una obligación exacta). El valor que se persiste es el
-que quede en el campo al confirmar el guardado (crear o editar), sea el
-sugerido sin tocar o uno editado a mano. "Restante" siempre se calcula como
+**`señaMonto` (corregido 2026-09-30, cambio de regla de negocio)**:
+`señaMonto_sugerido` es únicamente informativo — se muestra en el resumen de
+`FormularioReserva` al crear, pero no es editable ahí; al crear la reserva,
+`señaMonto` se persiste igual al sugerido. El valor real se carga después,
+al "Marcar seña como pagada" (`DetalleReserva`): el administrador ingresa el
+monto que efectivamente pagó el cliente (puede ser menor, igual o mayor al
+sugerido — es una referencia, no una obligación exacta), y ese monto
+reemplaza `señaMonto`. "Restante" siempre se calcula como
 `precioTotal - señaMonto` usando el `señaMonto` real persistido, no el
-sugerido.
+sugerido. `señaMonto` NO se recalcula automáticamente por ediciones de otros
+campos (quinta, fecha, cantidad de personas, horas extra).
 
 ### Validaciones
 
