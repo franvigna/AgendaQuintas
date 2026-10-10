@@ -172,8 +172,8 @@
   transition: transform 100ms ease-out;
 }
 
-.calendario__grilla > :nth-child(7n + 6):not(.calendario__dia--hoy),
-.calendario__grilla > :nth-child(7n):not(.calendario__dia--hoy) {
+.calendario__grilla > .calendario__dia:nth-child(7n + 6):not(.calendario__dia--hoy),
+.calendario__grilla > .calendario__dia:nth-child(7n):not(.calendario__dia--hoy) {
   background-color: var(--color-superficie);
 }
 
